@@ -1,0 +1,71 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "gh-runners",
+  "title": "GitHub Runners",
+  "description": "Watch self-hosted GitHub Actions runners and start, stop, restart or upgrade the ones on this Mac, through the gh runners extension",
+  "icon": "icon.png",
+  "author": "trkw",
+  "categories": ["Developer Tools"],
+  "license": "MIT",
+  "keywords": ["github", "actions", "runner", "self-hosted", "gh", "ci"],
+  "preferences": [
+    {
+      "name": "ghPath",
+      "title": "gh Path",
+      "description": "Path to the gh binary. Leave empty to look in Homebrew and Nix locations, then PATH.",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "runsLimit",
+      "title": "Workflow Runs per Repository",
+      "description": "How many recent workflow runs to show for each repository (1-100).",
+      "type": "textfield",
+      "required": false,
+      "default": "10"
+    }
+  ],
+  "commands": [
+    {
+      "name": "local-runners",
+      "title": "Local Runners",
+      "subtitle": "gh runners",
+      "description": "Runners on this Mac: service state, GitHub status and version, with start / stop / restart / upgrade",
+      "mode": "view"
+    },
+    {
+      "name": "runners",
+      "title": "Runners",
+      "subtitle": "gh runners",
+      "description": "Runners on GitHub for the configured repositories: online / offline / busy and labels",
+      "mode": "view"
+    },
+    {
+      "name": "workflow-runs",
+      "title": "Workflow Runs",
+      "subtitle": "gh runners",
+      "description": "Recent workflow runs of the configured repositories",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^2.9.0",
+    "@raycast/utils": "^2.3.3"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.2.0",
+    "@types/node": "22.19.17",
+    "@types/react": "19.0.10",
+    "eslint": "^9.39.0",
+    "prettier": "^3.9.0",
+    "typescript": "~5.9.0"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "typecheck": "tsc --noEmit"
+  }
+}
