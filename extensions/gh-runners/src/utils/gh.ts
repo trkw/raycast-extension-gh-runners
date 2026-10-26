@@ -75,16 +75,42 @@ export function ghPath(): string {
   );
 }
 
+// Raycast may set LANG / LC_* to a BCP 47 tag (e.g. "en-JP-u-ca-gregory-..."), which bash and
+// other POSIX tools reject with a setlocale warning on every run; replace such values.
+const posixLocale =
+  /^(C|POSIX|[A-Za-z]{2,3}(_[A-Za-z]{2})?)(\.[A-Za-z0-9-]+)?(@[A-Za-z0-9]+)?$/;
+
+export function localeEnv(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const result: NodeJS.ProcessEnv = {};
+  for (const [key, value] of Object.entries(source)) {
+    if (
+      (key === "LANG" || key.startsWith("LC_")) &&
+      value &&
+      !posixLocale.test(value)
+    ) {
+      result[key] = key === "LC_ALL" ? undefined : "en_US.UTF-8";
+    }
+  }
+  if (!source.LANG || result.LANG) result.LANG = "en_US.UTF-8";
+  return result;
+}
+
 function env(gh: string): NodeJS.ProcessEnv {
   const dirs = gh.includes("/") ? [dirname(gh), ...binDirs()] : binDirs();
-  return {
+  const merged: NodeJS.ProcessEnv = {
     ...process.env,
+    ...localeEnv(process.env),
     PATH: [...dirs, process.env.PATH || "/usr/bin:/bin:/usr/sbin:/sbin"].join(
       ":",
     ),
     GH_PROMPT_DISABLED: "1",
     NO_COLOR: "1",
   };
+  // An undefined value would be passed as the string "undefined".
+  for (const key of Object.keys(merged)) {
+    if (merged[key] === undefined) delete merged[key];
+  }
+  return merged;
 }
 
 export interface Output {
@@ -148,15 +174,30 @@ export async function runJson<T>(args: string[]): Promise<JsonResult<T>> {
   } catch {
     // Not JSON: an error message on stderr instead.
   }
-  if (!items)
+  if (!items) {
+    if (!(await supportsJson())) throw new Error(tooOld);
     throw new Error(
       lastLines(stderr || stdout) ||
         `gh runners ${args.join(" ")} failed (exit ${code})`,
     );
+  }
   return {
     items,
     warning: code === 0 ? undefined : lastLines(stderr) || `exit ${code}`,
   };
+}
+
+const tooOld =
+  "The installed gh runners has no --json. Update it: gh extension upgrade runners (or update the flake input that provides it).";
+
+// --json came with a later gh runners; an older one rejects it as an extra argument.
+async function supportsJson(): Promise<boolean> {
+  try {
+    const { stdout, stderr } = await runGhRunners(["--help"]);
+    return `${stdout}${stderr}`.includes("--json");
+  } catch {
+    return true; // Not the cause; report the original error.
+  }
 }
 
 export function lastLines(text: string, count = 3): string {

@@ -12,6 +12,8 @@ The extension is a front end for the [`gh runners`](https://github.com/trkw/gh-r
 Raycast starts commands with a minimal `PATH`, so `gh` is looked up in `/opt/homebrew/bin`, `/usr/local/bin`, `~/.nix-profile/bin`, `/etc/profiles/per-user/$USER/bin`, `/run/current-system/sw/bin` and `/nix/var/nix/profiles/default/bin` before `PATH`.
 Set **gh Path** in the extension preferences when it lives somewhere else.
 Those directories are also put first in `PATH` for `gh runners` itself, so it runs with the same `bash`, `curl` and `tar` as in a terminal.
+Raycast can also set `LANG` / `LC_*` to a locale that `bash` rejects (`setlocale: LC_ALL: cannot change locale`); such values are replaced with `en_US.UTF-8` (and `LC_ALL` is dropped) for `gh runners`.
+When the installed `gh runners` predates `--json`, the commands say so instead of showing its argument error.
 
 ## Commands
 
